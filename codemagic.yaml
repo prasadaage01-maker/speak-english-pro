@@ -1,0 +1,29 @@
+workflows:
+  android-workflow:
+    name: Speak English Pro - Android Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      vars:
+        PACKAGE_NAME: "com.athlezone.speakenglishpro"
+    scripts:
+      - name: Generate missing platform folders (android/ios) if not present
+        script: |
+          if [ ! -d "android" ] || [ ! -f "android/build.gradle" ]; then
+            echo "Android folder missing or incomplete — regenerating..."
+            flutter create --platforms=android --org com.athlezone .
+          fi
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+      - name: Build APK (debug, for quick testing)
+        script: |
+          flutter build apk --debug
+      - name: Build AAB (release, for Play Store)
+        script: |
+          flutter build appbundle --release || echo "Release build skipped - needs signing config, see notes"
+    artifacts:
+      - build/app/outputs/**/*.apk
+      - build/app/outputs/**/*.aab
+      - build/app/outputs/**/mapping.txt
